@@ -1,0 +1,11 @@
+[package]
+name = "download_sdl2"
+version = "0.0.1"
+authors = ["William Roe <git@wjlr.org.uk>"]
+
+[dependencies]
+hyper = "0.10"
+zip = "0.2.3"
+glob = "0.2.11"
+tar = "0.4.13"
+flate2 = "0.2.19"
