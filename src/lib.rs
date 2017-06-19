@@ -23,37 +23,37 @@ const SDL2_VERSION: &'static str = "2.0.5";
 const SDL2_IMAGE_VERSION: &'static str = "2.0.1";
 const SDL2_TTF_VERSION: &'static str = "2.0.14";
 
-fn zip_filename_to_target_filename(zip_filename: &Path,
-                                   target_path: &Path)
-                                   -> Option<PathBuf> {
+fn zip_filename_to_target_filename(
+    zip_filename: &Path,
+    target_path: &Path,
+) -> Option<PathBuf> {
     let bit64 = Pattern::new("**/x64/*").unwrap();
     let bit32 = Pattern::new("**/x86/*").unwrap();
-    zip_filename
-        .file_name()
-        .and_then(|filename| {
-            let new_path = if Pattern::new("*/lib/*/*.dll")
-                   .unwrap()
-                   .matches_path(zip_filename) {
-                Some(target_path.join("dll"))
-            } else if Pattern::new("*/lib/*/*.lib")
-                          .unwrap()
-                          .matches_path(zip_filename) {
-                Some(target_path.join("lib"))
+    zip_filename.file_name().and_then(|filename| {
+        let new_path = if Pattern::new("*/lib/*/*.dll")
+            .unwrap()
+            .matches_path(zip_filename)
+        {
+            Some(target_path.join("dll"))
+        } else if Pattern::new("*/lib/*/*.lib").unwrap().matches_path(
+            zip_filename,
+        )
+        {
+            Some(target_path.join("lib"))
+        } else {
+            None
+        };
+
+        new_path
+            .and_then(|path| if bit64.matches_path(zip_filename) {
+                Some(path.join("64"))
+            } else if bit32.matches_path(zip_filename) {
+                Some(path.join("32"))
             } else {
                 None
-            };
-
-            new_path
-                .and_then(|path| if bit64.matches_path(zip_filename) {
-                              Some(path.join("64"))
-                          } else if
-                    bit32.matches_path(zip_filename) {
-                              Some(path.join("32"))
-                          } else {
-                              None
-                          })
-                .map(|path| path.join(filename))
-        })
+            })
+            .map(|path| path.join(filename))
+    })
 }
 
 fn ungzip_file(zipfile: &Path, target_path: &Path) -> Result<(), Box<Error>> {
@@ -67,7 +67,8 @@ fn ungzip_file(zipfile: &Path, target_path: &Path) -> Result<(), Box<Error>> {
         // println!("filepath: {:?}", filepath);
 
         if let Some(target_filename) =
-            zip_filename_to_target_filename(&filepath, target_path) {
+            zip_filename_to_target_filename(&filepath, target_path)
+        {
             // FIXME: Cope the mingw dll/libs over
             // println!("Target filename: {:?}", target_filename);
         }
@@ -87,7 +88,8 @@ fn unzip_file(zipfile: &Path, target_path: &Path) -> ZipResult<()> {
         let filepath = Path::new(file.name());
         // println!("Filename: {:?}", filepath);
         if let Some(target_filename) =
-            zip_filename_to_target_filename(filepath, target_path) {
+            zip_filename_to_target_filename(filepath, target_path)
+        {
             // println!("Target filename: {:?}", target_filename);
             files_to_extract.push((target_filename, i));
         }
@@ -126,17 +128,15 @@ impl Display for PathError {
 }
 
 fn download_file(download_dir: &Path, url: Url) -> Result<PathBuf, Box<Error>> {
-    let url_filename = url.path_segments()
-        .ok_or(PathError {})?
-        .last()
-        .ok_or(PathError {})?;
+    let url_filename = url.path_segments().ok_or(PathError {})?.last().ok_or(
+        PathError {},
+    )?;
     let filename = download_dir.join(url_filename);
     if !filename.exists() {
         // println!("going to try downloading to: {:?}", filename);
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(filename.clone())?;
+        let mut file = OpenOptions::new().write(true).create_new(true).open(
+            filename.clone(),
+        )?;
         let client = Client::new();
         let mut res = client.get(url.clone()).send()?;
         io::copy(&mut res, &mut file)?;
@@ -152,47 +152,71 @@ fn fetch_windows_libraries(manifest_dir: &Path) -> Result<(), Box<Error>> {
         .expect("create target/downloads dir");
 
     let downloads = [
-        (format!("http://www.libsdl.org/release/SDL2-devel-{}-VC.zip",
-                 SDL2_VERSION),
-         "sdl2 VC",
-         "msvc"),
-        (format!("http://www.libsdl.org/release/SDL2-devel-{}-mingw.tar.gz",
-                 SDL2_VERSION),
-         "sdl2 mingw",
-         "gnu-mingw"),
-        (format!("http://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-{}-VC.zip",
-                 SDL2_IMAGE_VERSION),
-         "sdl2_image VC",
-         "msvc"),
-        (format!("http://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-{}-mingw.tar.gz",
-                 SDL2_IMAGE_VERSION),
-         "sdl2_image mingw",
-         "gnu-mingw"),
-        (format!("http://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-{}-VC.zip",
-                 SDL2_TTF_VERSION),
-         "sdl2_ttf VC",
-         "msvc"),
-        (format!("http://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-{}-mingw.tar.gz",
-                 SDL2_TTF_VERSION),
-         "sdl2_ttf mingw",
-         "gnu-mingw"),
+        (
+            format!(
+                "http://www.libsdl.org/release/SDL2-devel-{}-VC.zip",
+                SDL2_VERSION
+            ),
+            "sdl2 VC",
+            "msvc",
+        ),
+        (
+            format!(
+                "http://www.libsdl.org/release/SDL2-devel-{}-mingw.tar.gz",
+                SDL2_VERSION
+            ),
+            "sdl2 mingw",
+            "gnu-mingw",
+        ),
+        (
+            format!(
+                "http://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-{}-VC.zip",
+                SDL2_IMAGE_VERSION
+            ),
+            "sdl2_image VC",
+            "msvc",
+        ),
+        (
+            format!(
+                "http://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-{}-mingw.tar.gz",
+                SDL2_IMAGE_VERSION
+            ),
+            "sdl2_image mingw",
+            "gnu-mingw",
+        ),
+        (
+            format!(
+                "http://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-{}-VC.zip",
+                SDL2_TTF_VERSION
+            ),
+            "sdl2_ttf VC",
+            "msvc",
+        ),
+        (
+            format!(
+                "http://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-{}-mingw.tar.gz",
+                SDL2_TTF_VERSION
+            ),
+            "sdl2_ttf mingw",
+            "gnu-mingw",
+        ),
     ];
 
     for &(ref url, label, dir) in downloads.into_iter() {
         let expect_str = format!("valid {} url", label);
-        let zipfile = download_file(download_dir.as_path(),
-                                    Url::parse(&url).expect(&expect_str))?;
+        let zipfile = download_file(
+            download_dir.as_path(),
+            Url::parse(&url).expect(&expect_str),
+        )?;
         let target_dir = manifest_dir.join(dir);
-        zipfile
-            .extension()
-            .map(|ext| {
-                     // println!("ext: {:?}", ext);
-                     if ext == OsStr::new("zip") {
-                         let _ = unzip_file(&zipfile, &target_dir);
-                     } else if ext == OsStr::new("gz") {
-                         let _ = ungzip_file(&zipfile, &target_dir);
-                     }
-                 });
+        zipfile.extension().map(|ext| {
+            // println!("ext: {:?}", ext);
+            if ext == OsStr::new("zip") {
+                let _ = unzip_file(&zipfile, &target_dir);
+            } else if ext == OsStr::new("gz") {
+                let _ = ungzip_file(&zipfile, &target_dir);
+            }
+        });
     }
     Ok(())
 }
@@ -200,8 +224,8 @@ fn fetch_windows_libraries(manifest_dir: &Path) -> Result<(), Box<Error>> {
 pub fn download() -> Result<(), Box<Error>> {
     let target = env::var("TARGET").unwrap();
     if target.contains("pc-windows") {
-        let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR")
-                                             .unwrap());
+        let manifest_dir =
+            PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
 
         let _ = fetch_windows_libraries(manifest_dir.as_path());
 
