@@ -249,7 +249,8 @@ pub fn download() -> Result<(), Box<Error>> {
             dll_dir.push("32");
         }
         println!("cargo:rustc-link-search=all={}", lib_dir.display());
-        for entry in std::fs::read_dir(dll_dir).expect("Can't read DLL dir") {
+        let dll_dir_msg = format!("Can't read DDL dir: {:?}", dll_dir);
+        for entry in std::fs::read_dir(dll_dir).expect(&dll_dir_msg) {
             let entry_path = entry.expect("Invalid fs entry").path();
             let file_name_result = entry_path.file_name();
             let mut new_file_path = manifest_dir.clone();

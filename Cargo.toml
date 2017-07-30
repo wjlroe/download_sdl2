@@ -11,3 +11,6 @@ zip = "0.2.3"
 glob = "0.2.11"
 tar = "0.4.13"
 flate2 = "0.2.19"
+
+[lib]
+doctest = false
