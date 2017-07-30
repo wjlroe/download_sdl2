@@ -11,6 +11,8 @@ zip = "0.2.5"
 glob = "0.2.11"
 tar = "0.4.13"
 flate2 = "0.2.19"
+tokio-core = "0.1"
+futures = "0.1"
 
 [lib]
 doctest = false

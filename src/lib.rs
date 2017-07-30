@@ -3,10 +3,13 @@ extern crate tar;
 extern crate zip;
 extern crate glob;
 extern crate flate2;
+extern crate tokio_core;
+extern crate futures;
 
 use flate2::read::GzDecoder;
+use futures::{Future, Stream};
 use glob::Pattern;
-use hyper::Url;
+use hyper::Uri;
 use hyper::client::Client;
 use std::env;
 use std::error::Error;
@@ -15,7 +18,9 @@ use std::fmt::{self, Display, Formatter};
 use std::fs::{DirBuilder, File, OpenOptions, create_dir_all};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use tar::Archive;
+use tokio_core::reactor::Core;
 use zip::ZipArchive;
 use zip::result::ZipResult;
 
@@ -127,19 +132,21 @@ impl Display for PathError {
     }
 }
 
-fn download_file(download_dir: &Path, url: Url) -> Result<PathBuf, Box<Error>> {
-    let url_filename = url.path_segments().ok_or(PathError {})?.last().ok_or(
-        PathError {},
-    )?;
+fn download_file(download_dir: &Path, url: Uri) -> Result<PathBuf, Box<Error>> {
+    let url_filename = Path::new(url.path()).file_name().ok_or(PathError {})?;
     let filename = download_dir.join(url_filename);
     if !filename.exists() {
         // println!("going to try downloading to: {:?}", filename);
         let mut file = OpenOptions::new().write(true).create_new(true).open(
             filename.clone(),
         )?;
-        let client = Client::new();
-        let mut res = client.get(url.clone()).send()?;
-        io::copy(&mut res, &mut file)?;
+        let mut core = Core::new()?;
+        let client = Client::new(&core.handle());
+        let work = client.get(url).and_then(|res| {
+            io::copy(&mut res.body(), &mut file)?;
+        });
+        core.run(work)?;
+
     }
     Ok(filename)
 }
@@ -206,7 +213,7 @@ fn fetch_windows_libraries(manifest_dir: &Path) -> Result<(), Box<Error>> {
         let expect_str = format!("valid {} url", label);
         let zipfile = download_file(
             download_dir.as_path(),
-            Url::parse(&url).expect(&expect_str),
+            Uri::from_str(&url).expect(&expect_str),
         )?;
         let target_dir = manifest_dir.join(dir);
         zipfile.extension().map(|ext| {
