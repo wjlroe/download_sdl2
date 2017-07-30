@@ -6,8 +6,8 @@ description = "A build helper for downloading SDL2 libraries"
 license = "MIT"
 
 [dependencies]
-hyper = "0.10"
-zip = "0.2.3"
+hyper = "0.11.2"
+zip = "0.2.5"
 glob = "0.2.11"
 tar = "0.4.13"
 flate2 = "0.2.19"
