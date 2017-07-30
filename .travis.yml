@@ -1,0 +1,16 @@
+language: rust
+rust:
+  - 1.19.0
+os:
+  - linux
+  - osx
+cache: cargo
+before_script:
+- export PATH="$PATH:$HOME/.cargo/bin:$HOME/bin"
+- curl http://pre-commit.com/install-local.py | python
+- ./scripts/prepare_ci.sh
+script:
+- rustfmt --version
+- pre-commit run --all-files
+- cargo build
+- cargo test
