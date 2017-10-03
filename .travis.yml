@@ -1,16 +1,17 @@
 language: rust
 rust:
-  - 1.19.0
+  - 1.20.0
 os:
   - linux
   - osx
 cache: cargo
 before_script:
 - export PATH="$PATH:$HOME/.cargo/bin:$HOME/bin"
+- rustup install nightly
+- rustup run nightly cargo install --force rustfmt-nightly
 - curl http://pre-commit.com/install-local.py | python
-- ./scripts/prepare_ci.sh
 script:
-- rustfmt --version
+- rustup run nightly rustfmt --version
 - pre-commit run --all-files
 - cargo build
 - cargo test
