@@ -1,8 +1,8 @@
+extern crate flate2;
+extern crate glob;
 extern crate hyper;
 extern crate tar;
 extern crate zip;
-extern crate glob;
-extern crate flate2;
 
 use flate2::read::GzDecoder;
 use glob::Pattern;
@@ -12,14 +12,14 @@ use std::env;
 use std::error::Error;
 use std::ffi::OsStr;
 use std::fmt::{self, Display, Formatter};
-use std::fs::{DirBuilder, File, OpenOptions, create_dir_all};
+use std::fs::{create_dir_all, DirBuilder, File, OpenOptions};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 use tar::Archive;
 use zip::ZipArchive;
 use zip::result::ZipResult;
 
-const SDL2_VERSION: &'static str = "2.0.5";
+const SDL2_VERSION: &'static str = "2.0.6";
 const SDL2_IMAGE_VERSION: &'static str = "2.0.1";
 const SDL2_TTF_VERSION: &'static str = "2.0.14";
 
@@ -35,9 +35,9 @@ fn zip_filename_to_target_filename(
             .matches_path(zip_filename)
         {
             Some(target_path.join("dll"))
-        } else if Pattern::new("*/lib/*/*.lib").unwrap().matches_path(
-            zip_filename,
-        )
+        } else if Pattern::new("*/lib/*/*.lib")
+            .unwrap()
+            .matches_path(zip_filename)
         {
             Some(target_path.join("lib"))
         } else {
@@ -128,15 +128,17 @@ impl Display for PathError {
 }
 
 fn download_file(download_dir: &Path, url: Url) -> Result<PathBuf, Box<Error>> {
-    let url_filename = url.path_segments().ok_or(PathError {})?.last().ok_or(
-        PathError {},
-    )?;
+    let url_filename = url.path_segments()
+        .ok_or(PathError {})?
+        .last()
+        .ok_or(PathError {})?;
     let filename = download_dir.join(url_filename);
     if !filename.exists() {
         // println!("going to try downloading to: {:?}", filename);
-        let mut file = OpenOptions::new().write(true).create_new(true).open(
-            filename.clone(),
-        )?;
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(filename.clone())?;
         let client = Client::new();
         let mut res = client.get(url.clone()).send()?;
         io::copy(&mut res, &mut file)?;
