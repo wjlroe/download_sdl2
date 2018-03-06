@@ -19,8 +19,8 @@ use tar::Archive;
 use zip::ZipArchive;
 use zip::result::ZipResult;
 
-const SDL2_VERSION: &'static str = "2.0.6";
-const SDL2_IMAGE_VERSION: &'static str = "2.0.1";
+const SDL2_VERSION: &'static str = "2.0.8";
+const SDL2_IMAGE_VERSION: &'static str = "2.0.3";
 const SDL2_TTF_VERSION: &'static str = "2.0.14";
 
 fn zip_filename_to_target_filename(

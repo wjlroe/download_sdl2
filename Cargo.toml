@@ -1,6 +1,6 @@
 [package]
 name = "download_sdl2"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["William Roe <git@wjlr.org.uk>"]
 description = "A build helper for downloading SDL2 libraries"
 license = "MIT"
