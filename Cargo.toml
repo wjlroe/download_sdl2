@@ -7,10 +7,10 @@ license = "MIT"
 
 [dependencies]
 hyper = "0.10"
-zip = "0.2.3"
-glob = "0.2.11"
-tar = "0.4.13"
-flate2 = "0.2.19"
+zip = "0.3"
+glob = "0.2"
+tar = "0.4"
+flate2 = "1.0"
 
 [lib]
 doctest = false

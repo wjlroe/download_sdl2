@@ -45,12 +45,14 @@ fn zip_filename_to_target_filename(
         };
 
         new_path
-            .and_then(|path| if bit64.matches_path(zip_filename) {
-                Some(path.join("64"))
-            } else if bit32.matches_path(zip_filename) {
-                Some(path.join("32"))
-            } else {
-                None
+            .and_then(|path| {
+                if bit64.matches_path(zip_filename) {
+                    Some(path.join("64"))
+                } else if bit32.matches_path(zip_filename) {
+                    Some(path.join("32"))
+                } else {
+                    None
+                }
             })
             .map(|path| path.join(filename))
     })
@@ -59,14 +61,14 @@ fn zip_filename_to_target_filename(
 fn ungzip_file(zipfile: &Path, target_path: &Path) -> Result<(), Box<Error>> {
     let f = File::open(zipfile).expect("file should open");
     let buf_reader = BufReader::new(f);
-    let decoder = GzDecoder::new(buf_reader).expect("file should gzdecode");
+    let decoder = GzDecoder::new(buf_reader);
     let mut archive = Archive::new(decoder);
     for entry in archive.entries()? {
         let real_entry = entry?;
         let filepath = real_entry.path()?.clone();
         // println!("filepath: {:?}", filepath);
 
-        if let Some(target_filename) =
+        if let Some(_target_filename) =
             zip_filename_to_target_filename(&filepath, target_path)
         {
             // FIXME: Cope the mingw dll/libs over
