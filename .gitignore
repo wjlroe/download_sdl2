@@ -4,3 +4,4 @@ Cargo.lock
 msvc/
 gnu-mingw/
 test_manfest_dir/
+.idea/
