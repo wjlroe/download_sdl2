@@ -8,10 +8,8 @@ before_script:
 - export PATH="$PATH:$HOME/.cargo/bin:$HOME/bin"
 - rustup install nightly
 - rustup component add rustfmt-preview --toolchain nightly
-- curl http://pre-commit.com/install-local.py | python -
+- curl https://pre-commit.com/install-local.py | python -
 script:
-- rustc --version
-- cargo --version
 - rustup run nightly rustfmt --version
 - pre-commit run --all-files
 - cargo build
