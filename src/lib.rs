@@ -6,8 +6,8 @@ extern crate zip;
 
 use flate2::read::GzDecoder;
 use glob::Pattern;
-use hyper::Url;
 use hyper::client::Client;
+use hyper::Url;
 use std::env;
 use std::error::Error;
 use std::ffi::OsStr;
@@ -16,17 +16,14 @@ use std::fs::{create_dir_all, DirBuilder, File, OpenOptions};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 use tar::Archive;
-use zip::ZipArchive;
 use zip::result::ZipResult;
+use zip::ZipArchive;
 
 const SDL2_VERSION: &'static str = "2.0.8";
 const SDL2_IMAGE_VERSION: &'static str = "2.0.3";
 const SDL2_TTF_VERSION: &'static str = "2.0.14";
 
-fn zip_filename_to_target_filename(
-    zip_filename: &Path,
-    target_path: &Path,
-) -> Option<PathBuf> {
+fn zip_filename_to_target_filename(zip_filename: &Path, target_path: &Path) -> Option<PathBuf> {
     let bit64 = Pattern::new("**/x64/*").unwrap();
     let bit32 = Pattern::new("**/x86/*").unwrap();
     zip_filename.file_name().and_then(|filename| {
@@ -68,9 +65,7 @@ fn ungzip_file(zipfile: &Path, target_path: &Path) -> Result<(), Box<dyn Error>>
         let filepath = real_entry.path()?.clone();
         // println!("filepath: {:?}", filepath);
 
-        if let Some(_target_filename) =
-            zip_filename_to_target_filename(&filepath, target_path)
-        {
+        if let Some(_target_filename) = zip_filename_to_target_filename(&filepath, target_path) {
             // FIXME: Cope the mingw dll/libs over
             // println!("Target filename: {:?}", target_filename);
         }
@@ -89,9 +84,7 @@ fn unzip_file(zipfile: &Path, target_path: &Path) -> ZipResult<()> {
         let file = zip.by_index(i)?;
         let filepath = Path::new(file.name());
         // println!("Filename: {:?}", filepath);
-        if let Some(target_filename) =
-            zip_filename_to_target_filename(filepath, target_path)
-        {
+        if let Some(target_filename) = zip_filename_to_target_filename(filepath, target_path) {
             // println!("Target filename: {:?}", target_filename);
             files_to_extract.push((target_filename, i));
         }
@@ -130,7 +123,8 @@ impl Display for PathError {
 }
 
 fn download_file(download_dir: &Path, url: Url) -> Result<PathBuf, Box<dyn Error>> {
-    let url_filename = url.path_segments()
+    let url_filename = url
+        .path_segments()
         .ok_or(PathError {})?
         .last()
         .ok_or(PathError {})?;
@@ -208,10 +202,7 @@ fn fetch_windows_libraries(manifest_dir: &Path) -> Result<(), Box<dyn Error>> {
 
     for &(ref url, label, dir) in downloads.iter() {
         let expect_str = format!("valid {} url", label);
-        let zipfile = download_file(
-            download_dir.as_path(),
-            Url::parse(&url).expect(&expect_str),
-        )?;
+        let zipfile = download_file(download_dir.as_path(), Url::parse(&url).expect(&expect_str))?;
         let target_dir = manifest_dir.join(dir);
         zipfile.extension().map(|ext| {
             // println!("ext: {:?}", ext);
@@ -228,8 +219,7 @@ fn fetch_windows_libraries(manifest_dir: &Path) -> Result<(), Box<dyn Error>> {
 pub fn download() -> Result<(), Box<dyn Error>> {
     let target = env::var("TARGET").unwrap();
     if target.contains("pc-windows") {
-        let manifest_dir =
-            PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+        let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
 
         let _ = fetch_windows_libraries(manifest_dir.as_path());
 
