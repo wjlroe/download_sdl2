@@ -58,7 +58,7 @@ fn zip_filename_to_target_filename(
     })
 }
 
-fn ungzip_file(zipfile: &Path, target_path: &Path) -> Result<(), Box<Error>> {
+fn ungzip_file(zipfile: &Path, target_path: &Path) -> Result<(), Box<dyn Error>> {
     let f = File::open(zipfile).expect("file should open");
     let buf_reader = BufReader::new(f);
     let decoder = GzDecoder::new(buf_reader);
@@ -129,7 +129,7 @@ impl Display for PathError {
     }
 }
 
-fn download_file(download_dir: &Path, url: Url) -> Result<PathBuf, Box<Error>> {
+fn download_file(download_dir: &Path, url: Url) -> Result<PathBuf, Box<dyn Error>> {
     let url_filename = url.path_segments()
         .ok_or(PathError {})?
         .last()
@@ -148,7 +148,7 @@ fn download_file(download_dir: &Path, url: Url) -> Result<PathBuf, Box<Error>> {
     Ok(filename)
 }
 
-fn fetch_windows_libraries(manifest_dir: &Path) -> Result<(), Box<Error>> {
+fn fetch_windows_libraries(manifest_dir: &Path) -> Result<(), Box<dyn Error>> {
     let download_dir = manifest_dir.join("target").join("downloads");
     DirBuilder::new()
         .recursive(true)
@@ -206,7 +206,7 @@ fn fetch_windows_libraries(manifest_dir: &Path) -> Result<(), Box<Error>> {
         ),
     ];
 
-    for &(ref url, label, dir) in downloads.into_iter() {
+    for &(ref url, label, dir) in downloads.iter() {
         let expect_str = format!("valid {} url", label);
         let zipfile = download_file(
             download_dir.as_path(),
@@ -225,7 +225,7 @@ fn fetch_windows_libraries(manifest_dir: &Path) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-pub fn download() -> Result<(), Box<Error>> {
+pub fn download() -> Result<(), Box<dyn Error>> {
     let target = env::var("TARGET").unwrap();
     if target.contains("pc-windows") {
         let manifest_dir =
