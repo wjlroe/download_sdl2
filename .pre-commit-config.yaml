@@ -1,5 +1,7 @@
--   repo: git://github.com/pre-commit/pre-commit-hooks
-    sha: v0.9.1
+exclude: '^(testfiles|\.vscode|\.idea|\.vs)/'
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
     hooks:
     -   id: trailing-whitespace
     -   id: check-case-conflict
