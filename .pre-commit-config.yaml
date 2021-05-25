@@ -11,7 +11,7 @@
     -   id: rustfmt
         name: rustfmt
         description: Format files with rustfmt.
-        entry: rustup run nightly rustfmt
+        entry: cargo fmt
         language: system
         files: \.rs$
-        args: ['--unstable-features', '--write-mode=overwrite']
+        pass_filenames: false
